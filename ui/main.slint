@@ -1,0 +1,531 @@
+import { Process, HistoryPopup } from "./history.slint";
+import { Operation, IOperation } from "./operation.slint";
+import { Button, TextButton, NumberButton, IconButton } from "./widgets/button.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export enum Function { delete, clear, reset }
+
+export component MainWindow inherits Window {
+    title: "Calculator";
+    background: #212021;
+    forward-focus: focus-scope;
+
+    out property <bool> calculated: false;
+    out property <Operation> operation: none;
+    out property <float> p_number;
+    out property <float> number;
+    out property <float> result;
+    in-out property <[Process]> history;
+    // callback function-clicked(Function);
+    callback add-current-to-history();
+    callback get-display-number() -> float;
+
+    public pure function get-display-text() -> string {
+        return display.text;
+    }
+
+    public function set-number(number: float) {
+        display.text = number;
+        root.number = number;
+    }
+
+    public function reset() {
+        display.text = "0";
+        root.p_number = 0;
+        root.number = 0;
+        root.result = 0;
+        root.operation = Operation.none;
+        root.calculated = false;
+    }
+
+    public function calculate() {
+        if (root.operation == Operation.none) {
+            return;
+        }
+        if (root.calculated) {
+            root.p_number = get-display-number();
+        } else {
+            root.number = get-display-number();
+        }
+        root.calculated = true;
+        root.result = root.p_number;
+
+        if (root.operation == Operation.add) {
+            root.result += root.number;
+        } else if (root.operation == Operation.subtract) {
+            root.result -= root.number;
+        } else if (root.operation == Operation.multiply) {
+            root.result *= root.number;
+        } else if (root.operation == Operation.divide) {
+            if (root.number == 0) {
+                root.reset();
+                display.text = "Cannot divide by zero";
+                return;
+            }
+            root.result /= root.number;
+        }
+        display.text = root.result;
+        add-current-to-history();
+    }
+
+    // function display-font-size() -> length {
+    //     if (display.width > root.width) {
+    //         if (display.font-size == 42px) {
+    //             return 34px;
+    //         } else if (display.font-size == 34px) {
+    //             return 28px;
+    //         }
+    //     }
+    //     return 42px;
+    // }
+
+    function number-clicked(number: int) {
+        if (root.calculated || (display.text != "-" && root.number == 0)) {
+            display.text = "";
+        }
+        display.text += number;
+        root.number = get-display-number();
+        root.calculated = false;
+    }
+
+    function operation-clicked(operation: Operation) {
+        if (root.calculated) {
+            root.number = root.result;
+        } else if (root.operation != Operation.none) {
+            root.calculate();
+        }
+        if (root.number == 0 && operation == Operation.subtract) {
+            display.text = "-";
+        } else {
+            root.operation = operation;
+            root.p_number = root.number;
+            root.number = 0;
+        }
+
+        root.calculated = false;
+    }
+
+    pure function float-to-int(value: float) -> int {
+        return value;
+    }
+
+    function function-clicked(func: Function) {
+        if (func == Function.clear) {
+            if (root.calculated || root.number == 0) {
+                root.reset();
+            } else {
+                display.text = "0";
+            }
+        } else if (func == Function.reset) {
+            root.reset();
+        } else if (func == Function.delete) {
+            root.number = float-to-int(get-display-number() / 10);
+            display.text = root.number;
+        }
+    }
+
+    GridLayout {
+        spacing: 2px;
+        padding: 4px;
+        // padding-top: 16px;
+
+        Row {
+            display-layout := VerticalLayout {
+                colspan: 4;
+                horizontal-stretch: 0;
+                // padding-left: 8px;
+                padding-right: 8px;
+                padding-bottom: 8px;
+                spacing: 10px;
+
+                GridLayout {
+                    Row {
+                        IconButton {
+                            icon: @image-url("assets/history.svg");
+                            icon-color: Colors.white.darker(0.1);
+                            min-height: 32px;
+                            min-width: 32px;
+                            horizontal-stretch: 0;
+                            background: transparent;
+                            padding-top: 4px;
+                            padding-bottom: 4px;
+                            padding-left: 4px;
+                            padding-right: 4px;
+
+                            states [
+                                hovered when self.has-hover: {
+                                    background: #333233;
+                                }
+                            ]
+
+                            clicked => {
+                                history-popup.show = true;
+                            }
+                        }
+
+                        Text {
+                            text: root.operation != Operation.none ? root.p_number + " " + IOperation.to-string(root.operation) + (root.calculated ? " \{root.number} =" : "") + " " : " ";
+                            color: Colors.lightgray;
+                            vertical-alignment: bottom;
+                            horizontal-alignment: right;
+                            vertical-stretch: 0;
+                            horizontal-stretch: 1;
+                            font-size: 12px;
+                        }
+                    }
+                }
+
+                // TODO: Make this scrollable
+                // ScrollView {
+                //     vertical-scrollbar-policy: always-off;
+                //     horizontal-scrollbar-policy: always-on;
+                //     width: root.width - (4px + 8px) * 2;
+                    // forward-focus: focus-scope;
+
+                    display := TextInput {
+
+                    text: "0";
+                    color: Colors.white;
+                    selection-foreground-color: Colors.white;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    vertical-stretch: 0.2;
+                    font-size: 42px;
+                    // font-size: 28px;
+                    forward-focus: focus-scope;
+                    read-only: true;
+                    single-line: true;
+                }
+            }
+            // }
+        }
+
+        Row {
+            TextButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+
+                text: "CE";
+                clicked => {
+                    function-clicked(Function.clear);
+                }
+            }
+
+            TextButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                text: "C";
+                clicked => {
+                    function-clicked(Function.reset);
+                }
+            }
+
+            IconButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                // text: "\u{2190}";
+                icon: @image-url("assets/backspace.svg");
+                icon-color: Colors.white;
+                clicked => {
+                    function-clicked(Function.delete);
+                }
+            }
+
+            // TextButton {
+            //     vertical-stretch: 3;
+            //     horizontal-stretch: 1;
+            //     text: "/";
+            //     clicked => {
+            //         operation-clicked(Operation.divide);
+            //     }
+            // }
+
+            IconButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                icon: @image-url("assets/divide.svg");
+                icon-color: Colors.white;
+                clicked => {
+                    operation-clicked(Operation.divide);
+                }
+            }
+        }
+
+        Row {
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 1;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 2;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 3;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            // TextButton {
+            //     vertical-stretch: 3;
+            //     horizontal-stretch: 1;
+            //     text: "x";
+            //     clicked => {
+            //         operation-clicked(Operation.multiply);
+            //     }
+            // }
+            IconButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                icon: @image-url("assets/cross.svg");
+                icon-color: Colors.white;
+                clicked => {
+                    operation-clicked(Operation.multiply);
+                }
+            }
+        }
+
+        Row {
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 4;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 5;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 6;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            // TextButton {
+            //     vertical-stretch: 3;
+            //     horizontal-stretch: 1;
+            //     text: "-";
+            //     clicked => {
+            //         operation-clicked(Operation.subtract);
+            //     }
+            // }
+            IconButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                icon: @image-url("assets/minus.svg");
+                icon-color: Colors.white;
+                clicked => {
+                    operation-clicked(Operation.subtract);
+                }
+            }
+        }
+
+        Row {
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 7;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 8;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 9;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            // TextButton {
+            //     vertical-stretch: 3;
+            //     horizontal-stretch: 1;
+            //     text: "+";
+            //     clicked => {
+            //         operation-clicked(Operation.add);
+            //     }
+            // }
+
+            IconButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                icon: @image-url("assets/plus.svg");
+                icon-color: Colors.white;
+                clicked => {
+                    operation-clicked(Operation.add);
+                }
+            }
+        }
+
+        Row {
+            NumberButton {
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                number: 0;
+                colspan: 2;
+                clicked => {
+                    number-clicked(self.number);
+                }
+            }
+
+            TextButton {
+                states [
+                    hovered when self.has-hover: {
+                        background: #333233;
+                    }
+                ]
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                background: #3b3a3a;
+                text: ".";
+                col: 2;
+                clicked => {
+                    display.text += ".";
+                }
+            }
+
+            TextButton {
+                states [
+                    hovered when self.has-hover: {
+                        background: #4dc2fe.darker(0.1);
+                    }
+                ]
+                vertical-stretch: 3;
+                horizontal-stretch: 1;
+                text-color: Colors.black;
+                background: #4dc2fe;
+                text: "=";
+                clicked => {
+                    if (root.calculated) {
+                        root.p_number = root.result;
+                    }
+                    root.calculate();
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        background: Colors.black;
+        opacity: 0;
+        visible: self.opacity > 0;
+
+        animate opacity {
+            duration: 200ms;
+            easing: ease-out;
+        }
+
+        states [
+            visible when history-popup.show: {
+                opacity: 0.5;
+            }
+        ]
+
+        TouchArea {
+            clicked => {
+                history-popup.show = false;
+            }
+        }
+    }
+
+    history-popup := HistoryPopup {
+        screen-height: root.height;
+        history: root.history;
+        width: root.width;
+        height: root.height / 3 * 2;
+        process-clicked(process) => {
+            root.reset();
+            self.show = false;
+            root.p_number = process.p_number;
+            root.number = process.number;
+            root.operation = process.operation;
+            root.result = process.result;
+            root.calculated = true;
+            display.text = root.result;
+        }
+        clear-history-clicked => {
+            root.history = [];
+        }
+    }
+
+    focus-scope := FocusScope {
+        key-pressed(event) => {
+            if (!event.modifiers.alt && !event.modifiers.control && !event.modifiers.meta && !event.modifiers.shift) {
+                if (history-popup.show) {
+                    if (event.text == Key.Escape) {
+                        history-popup.visible = false;
+                        return accept;
+                    }
+                } else {
+                    if (event.text.is-float()) {
+                        number-clicked(event.text.to-float());
+                        return accept;
+                    } else if (event.text == "." || event.text == ",") {
+                        display.text += ".";
+                    } else if (event.text == "/") {
+                        operation-clicked(Operation.divide);
+                        return accept;
+                    } else if (event.text == "+") {
+                        operation-clicked(Operation.add);
+                        return accept;
+                    } else if (event.text == "-") {
+                        operation-clicked(Operation.subtract);
+                        return accept;
+                    } else if (event.text == "*") {
+                        operation-clicked(Operation.multiply);
+                        return accept;
+                    } else if (event.text == Key.Return) {
+                        root.calculate();
+                        return accept;
+                    } else if (event.text == Key.Backspace) {
+                        function-clicked(Function.delete);
+                        return accept;
+                    } else if (event.text == Key.Delete) {
+                        function-clicked(Function.clear);
+                        return accept;
+                    } else if (event.text == Key.Escape) {
+                        function-clicked(Function.reset);
+                        return accept;
+                    }
+                }
+            }
+            return reject;
+        }
+    }
+}

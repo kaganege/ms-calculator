@@ -1,0 +1,59 @@
+// import { Button as Base } from "@widgets";
+import { Button as Base } from "../libraries/widgets/lib.slint";
+
+export component Button inherits Base {
+    alignment: center;
+    border-radius: 4px;
+    border-width: 0px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 26px;
+    padding-right: 26px;
+}
+
+export component TextButton inherits Button {
+    in property text <=> text.text;
+    in property text-color <=> text.color;
+    states [
+        hovered when root.has-hover: {
+            background: #3b3a3a;
+        }
+    ]
+    text := Text {
+        color: Colors.white;
+        font-size: 16px;
+    }
+
+    background: #333233;
+}
+
+export component NumberButton inherits Button {
+    in property <int> number;
+    in property number-color <=> text.color;
+    states [
+        hovered when root.has-hover: {
+            background: #333233;
+        }
+    ]
+    text := Text {
+        text: number;
+        color: Colors.white;
+        font-size: 20px;
+    }
+
+    background: #3b3a3a;
+}
+
+export component IconButton inherits Button {
+    in property icon <=> image.source;
+    in property icon-color <=> image.colorize;
+    in property icon-width <=> image.width;
+    in property icon-height <=> image.height;
+    states [
+        hovered when root.has-hover: {
+            background: #3b3a3a;
+        }
+    ]
+    background: #333233;
+    image := Image { }
+}

@@ -1,0 +1,19 @@
+export enum Operation { none, add, subtract, multiply, divide }
+
+export global IOperation {
+    public pure function to-string(operation: Operation) -> string {
+        if (operation == Operation.add) {
+            return "+";
+        }
+        if (operation == Operation.subtract) {
+            return "-";
+        }
+        if (operation == Operation.multiply) {
+            return "*";
+        }
+        if (operation == Operation.divide) {
+            return "/";
+        }
+        return "";
+    }
+}

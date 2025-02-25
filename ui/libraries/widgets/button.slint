@@ -1,0 +1,75 @@
+import { Alignment, AlignmentUtils } from "./alignment.slint";
+
+export component Button {
+    in property enabled <=> touch.enabled;
+    in property mouse-cursor <=> touch.mouse-cursor;
+    in property background <=> rect.background;
+    in property border-color <=> rect.border-color;
+    in property border-width <=> rect.border-width;
+    in property border-radius <=> rect.border-radius;
+    in property <Alignment> alignment: top-left;
+    out property has-hover <=> touch.has-hover;
+    out property pressed <=> touch.pressed;
+    callback clicked <=> touch.clicked;
+    callback double-clicked <=> touch.double-clicked;
+    states [
+        disabled when !root.enabled: {
+            rect.opacity: 0.4;
+            rect.border-color: Colors.gray;
+        }
+        focused when focus-scope.has-focus: {
+            rect.border-color: Colors.black;
+            rect.border-width: 2px;
+        }
+        hovered when touch.has-hover: {
+            rect.border-color: Colors.black;
+        }
+    ]
+    pure function default-length(value: length, default: length) -> length {
+        return value >= 0 ? value : default;
+    }
+    pure function default-padding(side: length, default: length) -> length {
+        return default-length(side, default-length(self.padding, default));
+    }
+    accessible-role: button;
+    accessible-enabled: root.enabled;
+    forward-focus: focus-scope;
+    padding: -1px;
+    padding-left: -1px;
+    padding-right: -1px;
+    padding-top: -1px;
+    padding-bottom: -1px;
+    rect := Rectangle {
+        background: touch.pressed ? Colors.white.darker(0.1) : touch.has-hover ? Colors.lightgray.darker(0.1) : Colors.lightgray;
+        border-width: 1px;
+        border-color: Colors.gray.darker(1.0);
+        border-radius: 2px;
+        layout := HorizontalLayout {
+            alignment: AlignmentUtils.to-horizontal-alignment(root.alignment);
+            padding: default-length(root.padding, 0px);
+            padding-left: default-padding(root.padding-left, 8px);
+            padding-right: default-padding(root.padding-right, 8px);
+            padding-top: default-padding(root.padding-top, 4px);
+            padding-bottom: default-padding(root.padding-bottom, 4px);
+            VerticalLayout {
+                alignment: AlignmentUtils.to-vertical-alignment(root.alignment);
+                @children
+            }
+        }
+    }
+
+    touch := TouchArea { }
+
+    focus-scope := FocusScope {
+        x: 0;
+        width: 0;
+        enabled <=> root.enabled;
+        key-pressed(event) => {
+            if (!event.modifiers.alt && !event.modifiers.control && !event.modifiers.meta && !event.modifiers.shift && (event.text == Key.Space || event.text == Key.Return)) {
+                touch.clicked();
+                return accept;
+            }
+            return reject;
+        }
+    }
+}

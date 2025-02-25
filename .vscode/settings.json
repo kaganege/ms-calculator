@@ -1,0 +1,8 @@
+{
+  "workbench.startupEditor": "none",
+  "workbench.sideBar.location": "left",
+  "editor.detectIndentation": true,
+  "slint.libraryPaths": {
+    "widgets": "C:\\Users\\kagan\\Projects\\calculator\\ui\\libraries\\widgets\\lib.slint"
+  }
+}

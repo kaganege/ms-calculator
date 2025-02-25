@@ -1,0 +1,32 @@
+export component Popup {
+    in property <length> screen-height;
+    in property <bool> animate: true;
+    in property <duration> duration: 200ms;
+    in property <easing> easing: ease-out;
+    in-out property <bool> show: false;
+    visible: self.opacity > 0;
+    states [
+        visible when show: {
+            y: root.screen-height - root.height;
+            opacity: 1;
+            in {
+                animate y {
+                    duration: root.animate ? root.duration : 0ms;
+                    easing: root.easing;
+                }
+            }
+        }
+        hidden when !show: {
+            y: root.screen-height;
+            opacity: 0;
+            in {
+                animate opacity { delay: root.animate ? root.duration : 0ms; }
+                animate y {
+                    duration: root.animate ? root.duration : 0ms;
+                    easing: root.easing;
+                }
+            }
+        }
+    ]
+    @children
+}

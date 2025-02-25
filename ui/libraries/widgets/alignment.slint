@@ -1,0 +1,22 @@
+export enum Alignment { top-left, top-center, top-right, left-center, center, right-center, bottom-left, bottom-center, bottom-right }
+
+export global AlignmentUtils {
+    public pure function to-vertical-alignment(alignment: Alignment) -> LayoutAlignment {
+        if (alignment == Alignment.top-left || alignment == Alignment.top-center || alignment == Alignment.top-right) {
+            return LayoutAlignment.start;
+        }
+        if (alignment == Alignment.bottom-left || alignment == Alignment.bottom-center || alignment == Alignment.bottom-right) {
+            return LayoutAlignment.end;
+        }
+        return LayoutAlignment.center;
+    }
+    public pure function to-horizontal-alignment(alignment: Alignment) -> LayoutAlignment {
+        if (alignment == Alignment.top-left || alignment == Alignment.left-center || alignment == Alignment.bottom-left) {
+            return LayoutAlignment.start;
+        }
+        if (alignment == Alignment.top-right || alignment == Alignment.right-center || alignment == Alignment.bottom-right) {
+            return LayoutAlignment.end;
+        }
+        return LayoutAlignment.center;
+    }
+}

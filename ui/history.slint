@@ -1,0 +1,103 @@
+import { Operation, IOperation } from "operation.slint";
+import { Button } from "libraries/widgets/lib.slint";
+import { IconButton } from "widgets/button.slint";
+import { Popup } from "widgets/popup.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export struct Process {
+    p_number: float,
+    number: float,
+    operation: Operation,
+    result: float,
+}
+
+export component HistoryPopup inherits Popup {
+    in property <[Process]> history;
+    callback process-clicked(Process);
+    callback clear-history-clicked;
+    Rectangle {
+        background: #212021;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+
+        // Prevents the popup from closing when clicking inside of it
+        TouchArea { }
+
+        VerticalLayout {
+            padding-left: 8px;
+            padding-right: 8px;
+            VerticalLayout {
+                vertical-stretch: 1;
+                Rectangle {
+                    vertical-stretch: 0;
+                }
+
+                ScrollView {
+                    horizontal-scrollbar-policy: always-off;
+                    vertical-stretch: 1;
+                    VerticalLayout {
+                        alignment: start;
+                        padding-left: 4px;
+                        padding-right: 4px;
+                        padding-top: 32px;
+                        padding-bottom: 8px;
+                        spacing: 4px;
+                        accessible-role: list;
+                        accessible-item-count: root.history.length;
+                        for process[index] in root.history: Button {
+                            accessible-item-index: index;
+                            background: #212021;
+                            border-width: 0px;
+                            border-radius: 4px;
+                            padding-left: 8px;
+                            padding-right: 8px;
+                            padding-top: 12px;
+                            padding-bottom: 12px;
+                            alignment: right-center;
+                            states [
+                                hovered when self.has-hover: {
+                                    background: #333233;
+                                }
+                            ]
+                            clicked => {
+                                root.process-clicked(process);
+                            }
+                            Text {
+                                text: "\{process.p_number} \{IOperation.to-string(process.operation)} \{process.number} = \{process.result}";
+                                color: Colors.lightgray;
+                                vertical-alignment: center;
+                                horizontal-alignment: left;
+                                vertical-stretch: 0;
+                                font-size: 22px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                vertical-stretch: 0;
+                alignment: end;
+                padding-bottom: 8px;
+                IconButton {
+                    icon: @image-url("assets/trash.svg");
+                    icon-color: Colors.white.darker(0.1);
+                    background: transparent;
+                    horizontal-stretch: 0;
+                    padding-top: 4px;
+                    padding-bottom: 4px;
+                    padding-left: 4px;
+                    padding-right: 4px;
+                    states [
+                        hovered when self.has-hover: {
+                            background: #333233;
+                        }
+                    ]
+                    clicked => {
+                        root.clear-history-clicked();
+                    }
+                }
+            }
+        }
+    }
+}
