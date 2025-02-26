@@ -18,28 +18,28 @@ fn main() -> anyhow::Result<()> {
     }
   });
 
-  // app.on_function_clicked({
-  //   let handle = app.as_weak();
-  //   move |func: Function| {
-  //     let app = handle.unwrap();
-  //     match func {
-  //       Function::Reset => app.invoke_reset(),
-  //       Function::Delete => {
-  //         let number = app.get_number().to_string();
-  //         let number = &number[..number.len() - 1];
-  //         let number = number.trim_end_matches(',');
+  app.on_function_clicked({
+    let handle = app.as_weak();
+    move |func: Function| {
+      let app = handle.unwrap();
+      match func {
+        Function::Reset => app.invoke_reset(),
+        Function::Delete => {
+          let number = app.get_number().to_string();
+          let number = &number[..number.len() - 1];
+          let number = number.trim_end_matches(',');
 
-  //         app.invoke_set_number(if number.is_empty() {
-  //           0.0
-  //         } else {
-  //           number.parse().unwrap()
-  //         });
-  //       }
-  //       Function::Clear if app.get_calculated() || app.get_number() == 0.0 => app.invoke_reset(),
-  //       Function::Clear => app.invoke_set_number(0.0),
-  //     }
-  //   }
-  // });
+          app.invoke_set_number(if number.is_empty() {
+            0.0
+          } else {
+            number.parse().unwrap()
+          });
+        }
+        Function::Clear if app.get_calculated() || app.get_number() == 0.0 => app.invoke_reset(),
+        Function::Clear => app.invoke_set_number(0.0),
+      }
+    }
+  });
 
   app.on_add_current_to_history({
     let handle = app.as_weak();

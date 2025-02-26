@@ -10,13 +10,14 @@ export component MainWindow inherits Window {
     background: #212021;
     forward-focus: focus-scope;
 
-    out property <bool> calculated: false;
+    out property <bool> calculated;
     out property <Operation> operation: none;
     out property <float> p_number;
     out property <float> number;
     out property <float> result;
-    in-out property <[Process]> history;
-    // callback function-clicked(Function);
+    // in-out property <[Process]> history;
+    in-out property <[Process]> history: [{ p_number: 9.8, number: 7.2, operation: Operation.add, result: 9.8 + 7.2 }];
+    callback function-clicked(Function);
     callback add-current-to-history();
     callback get-display-number() -> float;
 
@@ -109,31 +110,29 @@ export component MainWindow inherits Window {
         return value;
     }
 
-    function function-clicked(func: Function) {
-        if (func == Function.clear) {
-            if (root.calculated || root.number == 0) {
-                root.reset();
-            } else {
-                display.text = "0";
-            }
-        } else if (func == Function.reset) {
-            root.reset();
-        } else if (func == Function.delete) {
-            root.number = float-to-int(get-display-number() / 10);
-            display.text = root.number;
-        }
-    }
+    // function function-clicked(func: Function) {
+    //     if (func == Function.clear) {
+    //         if (root.calculated || root.number == 0) {
+    //             root.reset();
+    //         } else {
+    //             display.text = "0";
+    //         }
+    //     } else if (func == Function.reset) {
+    //         root.reset();
+    //     } else if (func == Function.delete) {
+    //         root.number = float-to-int(get-display-number() / 10);
+    //         display.text = root.number;
+    //     }
+    // }
 
     GridLayout {
         spacing: 2px;
         padding: 4px;
-        // padding-top: 16px;
 
         Row {
             display-layout := VerticalLayout {
                 colspan: 4;
                 horizontal-stretch: 0;
-                // padding-left: 8px;
                 padding-right: 8px;
                 padding-bottom: 8px;
                 spacing: 10px;
